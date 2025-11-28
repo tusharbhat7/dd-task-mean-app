@@ -29,9 +29,6 @@ export class AddTutorialComponent {
         next: (res) => {
           console.log(res);
           this.submitted = true;
-
-          // ⭐ Refresh page so new tutorial appears immediately
-          window.location.reload();
         },
         error: (e) => console.error(e)
       });
