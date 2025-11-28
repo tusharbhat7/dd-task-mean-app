@@ -13,7 +13,7 @@ COPY package*.json ./
 RUN npm install --omit=dev
 
 # Copy the rest of the application source code
-COPY . .
+COPY app/config/db.config.js /app/app/config/db.config.js
 
 # === Stage 2: Production Runtime ===
 # Use the same base image for consistency and stability
