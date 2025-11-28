@@ -16,9 +16,9 @@ services:
     # later to use the Docker Hub image pushed by CI/CD.
     build: ./backend
     container_name: backend_container
-    # Expose port 3000 on the host machine for development/testing
+    # Expose port 8080 on the host machine for development/testing
     ports:
-      - "3000:3000"
+      - "8080:8080"
     restart: always
     # Environment variable to connect to the database.
     # 'mongo' is the service name of the database container.
