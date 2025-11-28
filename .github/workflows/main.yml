@@ -1,0 +1,74 @@
+name: CI/CD Pipeline for MEAN App
+
+on:
+  push:
+    branches:
+      - main
+  # Allows you to run this workflow manually from the GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout code
+        uses: actions/checkout@v3
+
+      - name: 2. Set up Docker Buildx (for modern image building)
+        uses: docker/setup-buildx-action@v3
+
+      - name: 3. Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 4. Build and Push Backend Image
+      - name: 4. Build and Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/dd-mean-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 5. Build and Push Frontend Image
+      - name: 5. Build and Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/dd-mean-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 6. Deploy to VM via SSH
+      - name: 6. Deploy to VM via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          # The script to run on the remote Ubuntu VM
+          script: |
+            # Define project directory path on the VM
+            PROJECT_DIR="/home/${{ secrets.SSH_USERNAME }}/dd-mean-app"
+
+            # If directory doesn't exist, clone the repo
+            if [ ! -d "$PROJECT_DIR/.git" ]; then
+                mkdir -p $PROJECT_DIR
+                cd $PROJECT_DIR
+                git clone https://github.com/${{ github.repository }}.git .
+            else
+                cd $PROJECT_DIR
+                # Pull the latest code (including updated compose/nginx files)
+                git pull
+            fi
+
+            # Stop and remove old containers, pull the new images, and restart
+            # --pull ensures the latest images pushed in steps 4 & 5 are downloaded
+            # --force-recreate ensures new containers are spun up
+            docker compose pull
+            docker compose up -d --force-recreate
