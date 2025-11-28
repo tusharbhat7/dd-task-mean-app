@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # 1. MongoDB Database Service
+  mongo:
+    image: mongo:latest
+    container_name: mongodb_container
+    # Use a persistent volume for data
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+
+  # 2. Backend (Node/Express API) Service
+  backend:
+    # We use a build context locally for testing, but will change this 
+    # later to use the Docker Hub image pushed by CI/CD.
+    build: ./backend
+    container_name: backend_container
+    # Expose port 3000 on the host machine for development/testing
+    ports:
+      - "3000:3000"
+    restart: always
+    # Environment variable to connect to the database.
+    # 'mongo' is the service name of the database container.
+    environment:
+      # You MUST verify if your 'db.config.js' expects this exact URI.
+      # Default MongoDB port is 27017. 'ddtaskdb' is the database name.
+      MONGO_URI: mongodb://mongo:27017/ddtaskdb
+    # Ensure MongoDB starts before the backend attempts to connect
+    depends_on:
+      - mongo
+
+  # 3. Frontend (Angular/Nginx) Service
+  frontend:
+    build: ./frontend
+    container_name: frontend_container
+    # Map host port 8081 (from your README) to container port 80 (where Nginx serves)
+    ports:
+      - "8081:80" 
+    restart: always
+    # Ensure backend is up so the frontend can immediately make API calls
+    depends_on:
+      - backend
+
+# Define volumes for persistent data storage
+volumes:
+  mongo-data:
