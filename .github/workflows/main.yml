@@ -70,5 +70,5 @@ jobs:
             # Stop and remove old containers, pull the new images, and restart
             # --pull ensures the latest images pushed in steps 4 & 5 are downloaded
             # --force-recreate ensures new containers are spun up
-            docker compose pull
-            docker compose up -d --force-recreate
+            docker-compose pull
+            docker-compose up -d --force-recreate
