@@ -30,18 +30,28 @@ services:
     depends_on:
       - mongo
 
-  # 3. Frontend (Angular/Nginx) Service
+# 3. Frontend (Angular/Nginx) Service - Internal only
   frontend:
     build: ./frontend
     container_name: frontend_container
-    # Map host port 8081 (from your README) to container port 80 (where Nginx serves)
-    ports:
-      - "8081:80" 
+    # No port exposure here, it's only accessible internally via the proxy
     restart: always
-    # Ensure backend is up so the frontend can immediately make API calls
     depends_on:
       - backend
 
+  # 4. Reverse Proxy (The public-facing gateway)
+  proxy:
+    image: nginx:stable-alpine
+    container_name: nginx_proxy
+    # Map VM's port 80 to the container's port 80
+    ports:
+      - "80:80"
+    restart: always
+    # Mount the custom Nginx configuration file
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
 # Define volumes for persistent data storage
 volumes:
   mongo-data:
