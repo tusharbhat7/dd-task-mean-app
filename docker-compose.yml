@@ -24,8 +24,8 @@ services:
     # 'mongo' is the service name of the database container.
     environment:
       # You MUST verify if your 'db.config.js' expects this exact URI.
-      # Default MongoDB port is 27017. 'ddtaskdb' is the database name.
-      MONGO_URI: mongodb://mongo:27017/ddtaskdb
+      # Default MongoDB port is 27017. 'dd_db' is the database name.
+      MONGO_URI: mongodb://mongo:27017/dd_db
     # Ensure MongoDB starts before the backend attempts to connect
     depends_on:
       - mongo
