@@ -1,0 +1,12 @@
+# Dependency directories
+node_modules/
+
+# Angular build output
+dist/
+.angular/
+
+# Environment files
+.env
+
+# OS files
+.DS_Store
